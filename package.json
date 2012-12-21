@@ -1,0 +1,14 @@
+{
+  "name":"nba_espn_scraper",
+  "version":"0.0.1",
+  "node": "0.8.1",
+  "engines":{
+    "node":">= 0.8"
+  },
+  "dependencies":{
+    "express":">=2.5.8",
+    "jquery":">=1.7.3",
+    "underscore" : "1.3.3",
+    "mysql": "2.0.0-alpha5"
+  }
+}
