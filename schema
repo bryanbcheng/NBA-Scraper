@@ -1,0 +1,78 @@
+CREATE TABLE players (
+	id INT NOT NULL PRIMARY KEY,
+	name VARCHAR(100)
+);
+
+CREATE TABLE players_stats (
+	player_id INT NOT NULL,
+	team_id VARCHAR(5) NOT NULL,
+	game_id INT NOT NULL,
+	min INT DEFAULT 0,
+	fgm INT DEFAULT 0,
+	fga INT DEFAULT 0,
+	tpm INT DEFAULT 0,
+	tpa INT DEFAULT 0,
+	ftm INT DEFAULT 0,
+	fta INT DEFAULT 0,
+	oreb INT DEFAULT 0,
+	dreb INT DEFAULT 0,
+	reb INT DEFAULT 0,
+	ast INT DEFAULT 0,
+	stl INT DEFAULT 0,
+	blk INT DEFAULT 0,
+	`to` INT DEFAULT 0,
+	pf INT DEFAULT 0,
+	pm INT DEFAULT 0,
+	pts INT DEFAULT 0,
+	dnp VARCHAR(100)
+);
+
+CREATE TABLE teams_stats (
+	team_id VARCHAR(5) NOT NULL,
+	game_id INT NOT NULL,
+	q1 INT DEFAULT 0,
+	q2 INT DEFAULT 0,
+	q3 INT DEFAULT 0,
+	q4 INT DEFAULT 0,
+	ot1 INT,
+	ot2 INT,
+	ot3 INT,
+	ot4 INT,
+	fgm INT DEFAULT 0,
+	fga INT DEFAULT 0,
+	tpm INT DEFAULT 0,
+	tpa INT DEFAULT 0,
+	ftm INT DEFAULT 0,
+	fta INT DEFAULT 0,
+	oreb INT DEFAULT 0,
+	dreb INT DEFAULT 0,
+	reb INT DEFAULT 0,
+	ast INT DEFAULT 0,
+	stl INT DEFAULT 0,
+	blk INT DEFAULT 0,
+	`to` INT DEFAULT 0,
+	pf INT DEFAULT 0,
+	pts INT DEFAULT 0,
+	fbp INT DEFAULT 0,
+	pip INT DEFAULT 0,
+	ttt INT DEFAULT 0,
+	pot INT DEFAULT 0
+);
+
+time DATETIME,
+	date VARCHAR(),
+
+CREATE TABLE games (
+	id INT NOT NULL PRIMARY KEY,
+	time VARCHAR(100),
+	location VARCHAR(100),
+	away_team VARCHAR(5),
+	home_team VARCHAR(5),
+	away_score INT,
+	home_score INT,
+	flagrants VARCHAR(250),
+	technicals VARCHAR(250),
+	officials VARCHAR(100),
+	attendance INT,
+	time_length VARCHAR(10)
+);

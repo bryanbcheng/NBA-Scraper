@@ -7,7 +7,13 @@ var http = require('http'),
 
 /* Database */
 /* Connect to MySQL */
-
+var mysql = require('mysql');
+var connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'root',
+  password : 'valefor',
+  database : 'nba_data'
+});
 
 var base_url = "scores.espn.go.com";
 
@@ -70,8 +76,15 @@ function getBoxScoreData(link) {
 		getTeamData(data, game);
 		getExtraData(data, game);
 		
-		console.log(game);
+		game.away_score = game.away_team.pts;
+		game.home_score = game.home_team.pts;
+		game.away_team = game.away_team.team_id;
+		game.home_team = game.home_team.team_id;
+		
 		/* TODO add to mysql */
+		var query = connection.query('INSERT INTO games SET ?', game, function(err, result) {
+			// check?
+		});
 	});
 }
 
@@ -83,28 +96,31 @@ function getTimeLocation(data, game) {
 	game.location = timeLocation.last().text();
 }
 
+var quarters = ['team_id', 'q1', 'q2', 'q3', 'q4', 'ot1', 'ot2', 'ot3', 'ot4'];
+
 /* Function to get line-scores (per quarter) */
 function getLineScores(data, game) {
 	var html = $(data);
 	var scores = html.find("table.linescore tr");
 	var periods = $(scores[0]).children();
-	var awayTeam = $(scores[1]).children();
-	var homeTeam = $(scores[2]).children();
+	var away_team = $(scores[1]).children();
+	var home_team = $(scores[2]).children();
 	
-	game.awayTeam = {id: awayTeam.first().text()};
-	game.homeTeam = {id: homeTeam.first().text()};
-	for (var i = 1; i < periods.length; i++) {
-		var period = $(periods[i]).text().trim();
-		game.awayTeam[period] = $(awayTeam[i]).text();
-		game.homeTeam[period] = $(homeTeam[i]).text();
+	game.away_team = {team_id: away_team.first().text()};
+	game.home_team = {team_id: home_team.first().text()};
+	for (var i = 1; i < periods.length - 1; i++) {
+// 		var period = $(periods[i]).text().trim();
+		var period = quarters[i];
+		game.away_team[period] = $(away_team[i]).text();
+		game.home_team[period] = $(home_team[i]).text();
 	}
 }
 
 /* Helper function to parse player data */
-function parsePlayerData(data, game, playerData) {
-	var player = {gameId: game.id};
+function parsePlayerData(data, game, playerData, teamId) {
+	var player = {game_id: game.id, team_id: teamId};
 	var it = $(playerData).children().first();
-	player.id = parseId(it.find("a").attr("href"));
+	player.player_id = parseId(it.find("a").attr("href"));
 	if ($(playerData).children().length > 2) {
 		player.min = (it = it.next()).text();
 		player.fgm = (it = it.next()).text().split("-")[0];
@@ -126,7 +142,10 @@ function parsePlayerData(data, game, playerData) {
 	} else {
 		player.dnp = (it = it.next()).text();
 	}
-	/* TODO: update mysql */
+	
+	var query = connection.query('INSERT INTO players_stats SET ?', player, function(err, result) {
+		// check?
+	});
 }
 
 /* Function to get player data */
@@ -135,7 +154,7 @@ function getPlayerData(data, game) {
 	var players = html.find("#my-players-table table tr[class*=player]");
 	
 	players.each(function(i, e) {
-		parsePlayerData(data, game, e);
+		parsePlayerData(data, game, e, (i < 13 ? game.away_team.team_id : game.home_team.team_id));
 	});
 }
 
@@ -174,16 +193,22 @@ function getTeamData(data, game) {
 	var html = $(data);
 	var teams = html.find("#my-players-table tbody");
 	
-	var awayTeamData = $(teams[2]).find("tr");
-	var homeTeamData = $(teams[5]).find("tr");
+	var away_team_data = $(teams[2]).find("tr");
+	var home_team_data = $(teams[5]).find("tr");
 	
-	parseTeamTotals(data, game, awayTeamData[0], game.awayTeam);
-	parseTeamExtras(data, game, awayTeamData[2], game.awayTeam);
+	parseTeamTotals(data, game, away_team_data[0], game.away_team);
+	parseTeamExtras(data, game, away_team_data[2], game.away_team);
 	
-	parseTeamTotals(data, game, homeTeamData[0], game.homeTeam);
-	parseTeamExtras(data, game, homeTeamData[2], game.homeTeam);
+	parseTeamTotals(data, game, home_team_data[0], game.home_team);
+	parseTeamExtras(data, game, home_team_data[2], game.home_team);
 	
 	/* TODO: mysql team data */
+	var query = connection.query('INSERT INTO teams_stats SET ?', _.extend({game_id: game.id}, game.away_team), function(err, result) {
+		// check?
+	});
+	var query = connection.query('INSERT INTO teams_stats SET ?', _.extend({game_id: game.id}, game.home_team), function(err, result) {
+		// check?
+	});
 }
 
 /* Function to get extra data */
@@ -194,13 +219,19 @@ function getExtraData(data, game) {
 	game.flagrants = $(extras.contents()[2]).text();
 	game.technicals = $(extras.contents()[3]).text();
 	game.officials = $(extras.contents()[4]).text();
-	game.attendance = $(extras.contents()[5]).text();
-	game.timeLength = $(extras.contents()[6]).text();
+	game.attendance = parseInt(($(extras.contents()[5]).text()).replace(/\,/g,''),10);
+	game.time_length = $(extras.contents()[6]).text();
 }
 
 function main() {
-	getBoxScoreLinks(20121219, function(links) {
-		getBoxScoreData(links[0]);
+	connection.connect(function(err) {
+		// connected!
+		
+		getBoxScoreLinks(20121219, function(links) {
+			for (var i in links) {
+				getBoxScoreData(links[i]);
+			}
+		});
 	});
 }
 
