@@ -24,7 +24,9 @@ CREATE TABLE players_stats (
 	pf INT DEFAULT 0,
 	pm INT DEFAULT 0,
 	pts INT DEFAULT 0,
-	dnp VARCHAR(100)
+	dnp VARCHAR(100),
+	
+	PRIMARY KEY (player_id, game_id)
 );
 
 CREATE TABLE teams_stats (
@@ -56,15 +58,21 @@ CREATE TABLE teams_stats (
 	fbp INT DEFAULT 0,
 	pip INT DEFAULT 0,
 	ttt INT DEFAULT 0,
-	pot INT DEFAULT 0
+	pot INT DEFAULT 0,
+	
+	PRIMARY KEY (team_id, game_id)
 );
 
+/*
 time DATETIME,
 	date VARCHAR(),
+time VARCHAR(100),
+*/
 
 CREATE TABLE games (
 	id INT NOT NULL PRIMARY KEY,
-	time VARCHAR(100),
+	date DATE,
+	time TIME,
 	location VARCHAR(100),
 	away_team VARCHAR(5),
 	home_team VARCHAR(5),

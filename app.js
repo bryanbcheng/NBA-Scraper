@@ -92,8 +92,65 @@ function getBoxScoreData(link) {
 function getTimeLocation(data, game) {
 	var html = $(data);
 	var timeLocation = html.find("div.game-time-location p");
-	game.time = timeLocation.first().text();
-	game.location = timeLocation.last().text();
+	var timeString = timeLocation.first().text();
+	
+	// parse date and time
+	var datetimePat = /(\d+|\w+)/g;
+	var datetimeArr = timeString.match(datetimePat);
+
+	var year = datetimeArr[6];
+	var month = "";
+	switch (datetimeArr[4]) {
+	case "January":
+		month = "01";
+		break;
+	case "February":
+		month = "02";
+		break;
+	case "March":
+		month = "03";
+		break;
+	case "April":
+		month = "04";
+		break;
+	case "May":
+		month = "05";
+		break;
+	case "June":
+		month = "06";
+		break;
+	case "July":
+		month = "07";
+		break;
+	case "August":
+		month = "08";
+		break;
+	case "September":
+		month = "09";
+		break;
+	case "October":
+		month = "10";
+		break;
+	case "November":
+		month = "11";
+		break;
+	case "December":
+		month = "12";
+		break;
+	default:
+		month = "01";
+		break;
+	}
+	var day = datetimeArr[5];
+	
+	game.date = year + "-" + month + "-" + day;
+	
+	var hour = datetimeArr[2] == "PM" ? parseInt(datetimeArr[0]) + 12 : datetimeArr[0];
+	var min = datetimeArr[1];
+	
+	game.time = hour + ":" + min + ":" + "00";
+	
+	game.location = $.trim(timeLocation.last().text());
 }
 
 var quarters = ['team_id', 'q1', 'q2', 'q3', 'q4', 'ot1', 'ot2', 'ot3', 'ot4'];
@@ -140,7 +197,7 @@ function parsePlayerData(data, game, playerData, teamId) {
 		player.pm = (it = it.next()).text();
 		player.pts = (it = it.next()).text();
 	} else {
-		player.dnp = (it = it.next()).text();
+		player.dnp = $.trim((it = it.next()).text());
 	}
 	
 	var query = connection.query('INSERT INTO players_stats SET ?', player, function(err, result) {
@@ -216,18 +273,20 @@ function getExtraData(data, game) {
 	var html = $(data);
 	var extras = html.find("div.mod-content").clone().children().remove().end();
 	
-	game.flagrants = $(extras.contents()[2]).text();
-	game.technicals = $(extras.contents()[3]).text();
-	game.officials = $(extras.contents()[4]).text();
+	game.flagrants = $.trim($(extras.contents()[2]).text());
+	game.technicals = $.trim($(extras.contents()[3]).text());
+	game.officials = $.trim($(extras.contents()[4]).text());
 	game.attendance = parseInt(($(extras.contents()[5]).text()).replace(/\,/g,''),10);
-	game.time_length = $(extras.contents()[6]).text();
+	game.time_length = $.trim($(extras.contents()[6]).text());
 }
 
 function main() {
+	var fetchDate = process.argv[2];
+
 	connection.connect(function(err) {
 		// connected!
 		
-		getBoxScoreLinks(20121219, function(links) {
+		getBoxScoreLinks(fetchDate, function(links) {
 			for (var i in links) {
 				getBoxScoreData(links[i]);
 			}

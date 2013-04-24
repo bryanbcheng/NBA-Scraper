@@ -1,3 +1,5 @@
+https://github.com/yoyostevo/nba-scraper/blob/master/src/nba_scraper/core.clj
+
 (ns nba-scraper.core
   (:require [net.cgrand.enlive-html :as html]
 	    [clojure.string :as st]))
